@@ -1,0 +1,1977 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مجرات | Majarat 3D</title>
+    <!-- Google Fonts: Tajawal -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-dark: #030712;
+            --panel-bg: rgba(15, 23, 42, 0.85);
+            --panel-border: rgba(255, 255, 255, 0.12);
+            --accent-cyan: #38bdf8;
+            --accent-purple: #c084fc;
+            --accent-gold: #fbbf24;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+        }
+
+        #webgl-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        .interactive {
+            pointer-events: auto;
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 12px 24px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+        }
+
+        .logo i {
+            -webkit-text-fill-color: initial;
+            color: var(--accent-cyan);
+            font-size: 28px;
+            filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.6));
+        }
+        .controls-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-main);
+            padding: 10px 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: var(--accent-cyan);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0284c7, #6366f1);
+            border: none;
+        }
+
+        .btn-rocket {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            border: none;
+            color: #fff;
+        }
+
+        .btn-admin {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            display: none;
+        }
+
+        .search-container {
+            position: absolute;
+            top: 90px;
+            right: 20px;
+            width: 320px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group i {
+            position: absolute;
+            right: 14px;
+            color: var(--text-muted);
+        }
+
+        .input-control {
+            width: 100%;
+            padding: 10px 40px 10px 14px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .input-control:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        select.input-control {
+            appearance: none;
+            cursor: pointer;
+        }
+
+        select.input-control option {
+            background: #0f172a;
+            color: #fff;
+        }
+
+        .flight-hud {
+            position: absolute;
+            top: 90px;
+            left: 20px;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            display: none;
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+        }
+
+        .flight-hud.active {
+            display: flex;
+        }
+
+        .hud-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hud-stat {
+            font-size: 13px;
+            color: var(--text-main);
+        }
+        .mobile-flight-controls {
+            position: absolute;
+            bottom: 25px;
+            left: 20px;
+            right: 20px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: auto;
+            z-index: 25;
+        }
+
+        .mobile-flight-controls.active {
+            display: flex;
+        }
+
+        .dpad {
+            display: grid;
+            grid-template-columns: repeat(3, 50px);
+            grid-template-rows: repeat(2, 50px);
+            gap: 8px;
+            justify-items: center;
+            align-items: center;
+        }
+
+        .touch-btn {
+            background: rgba(56, 189, 248, 0.2);
+            border: 1px solid var(--accent-cyan);
+            color: #fff;
+            font-size: 18px;
+            border-radius: 12px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .touch-btn:active, .touch-btn.pressed {
+            background: rgba(56, 189, 248, 0.6);
+            transform: scale(0.95);
+        }
+
+        .altitude-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .touch-btn-alt {
+            width: 70px;
+            height: 45px;
+            font-size: 13px;
+            font-weight: 700;
+            background: rgba(245, 158, 11, 0.2);
+            border-color: var(--accent-gold);
+        }
+        .info-card {
+            position: absolute;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            width: 320px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 50;
+        }
+
+        .info-card.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .info-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+
+        .info-details {
+            text-align: center;
+        }
+
+        .info-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .info-country {
+            font-size: 13px;
+            color: var(--accent-cyan);
+            margin-top: 2px;
+        }
+
+        .info-date {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .bottom-bar {
+            width: 100%;
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .stats-badge {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 14px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-muted);
+        }
+
+        .stat-item span {
+            color: var(--accent-cyan);
+            font-weight: 700;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(3, 7, 18, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            width: 90%;
+            max-width: 440px;
+            padding: 28px;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .avatar-option {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .avatar-option.selected {
+            border-color: var(--accent-cyan);
+            background: rgba(56, 189, 248, 0.2);
+        }
+
+        .admin-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 15px;
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255,255,255,0.2);
+            transition: .4s;
+            border-radius: 22px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent-cyan);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+    </style>
+    <!-- Three.js & Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+    <div id="webgl-container"></div>
+
+    <div class="ui-layer">
+        <header class="glass-panel interactive">
+            <div class="logo" id="stealth-logo-click">
+                <i class="fa-solid fa-orbit"></i>
+                <span>مَجَرّات</span>
+            </div>
+            <div class="controls-top">
+                <button class="btn btn-rocket" id="toggle-flight-btn">
+                    <i class="fa-solid fa-rocket"></i>
+                    <span id="flight-btn-text">وضع الصاروخ</span>
+                </button>
+                <button class="btn btn-primary" id="open-add-btn">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>أضف نجمتك</span>
+                </button>
+                <button class="btn" id="reset-cam-btn" title="إعادة ضبط الكاميرا">
+                    <i class="fa-solid fa-compress"></i>
+                </button>
+                <button class="btn btn-admin" id="admin-panel-btn" title="لوحة التحكم الخفية">
+                    <i class="fa-solid fa-user-shield"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="search-container glass-panel interactive">
+            <div class="input-group">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="search-input" class="input-control" placeholder="ابحث عن اسم أو نجمة...">
+            </div>
+            <div class="input-group">
+                <i class="fa-solid fa-globe"></i>
+                <select id="country-filter" class="input-control">
+                    <option value="ALL">جميع مجرات الدول</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="flight-hud glass-panel" id="flight-hud">
+            <div class="hud-title">
+                <i class="fa-solid fa-gauge-high"></i> قيادة الصاروخ بفيزيائية الفضاء
+            </div>
+            <div class="hud-stat"><b>W / S:</b> دفع الصاروخ للأمام والعكس</div>
+            <div class="hud-stat"><b>A / D:</b> الدوران يميناً ويساراً</div>
+            <div class="hud-stat"><b>R / F:</b> الارتفاع والنزول</div>
+            <div class="hud-stat">💎 البلورات: <span id="crystals-count" style="color:var(--accent-cyan); font-weight:700;">0</span> / 12</div>
+        </div>
+
+        <div class="mobile-flight-controls glass-panel" id="mobile-controls">
+            <div class="dpad">
+                <div></div>
+                <button class="touch-btn" data-key="w">⬆️</button>
+                <div></div>
+                <button class="touch-btn" data-key="a">⬅️</button>
+                <button class="touch-btn" data-key="s">⬇️</button>
+                <button class="touch-btn" data-key="d">➡️</button>
+            </div>
+            <div class="altitude-controls">
+                <button class="touch-btn touch-btn-alt" data-key="r">🚀 صعود</button>
+                <button class="touch-btn touch-btn-alt" data-key="f">🔻 هبوط</button>
+            </div>
+        </div>
+
+        <div class="info-card glass-panel interactive" id="info-card">
+            <div class="info-avatar" id="card-avatar">🚀</div>
+            <div class="info-details">
+                <div class="info-name" id="card-name">اسم المشارك</div>
+                <div class="info-country" id="card-country">المملكة المغربية</div>
+                <div class="info-date" id="card-date">انضم: 2026-10-24</div>
+            </div>
+            <button class="btn btn-admin" id="delete-star-btn" style="display:none; width:100%; margin-top:8px; justify-content:center;">
+                <i class="fa-solid fa-trash"></i> حذف النجمة (الأدمن)
+            </button>
+        </div>
+
+        <div class="bottom-bar glass-panel interactive">
+            <div class="stats-badge">
+                <div class="stat-item">
+                    <i class="fa-solid fa-planet-ringed"></i>
+                    المجرات: <span id="stat-galaxies">0</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fa-solid fa-star"></i>
+                    النجوم: <span id="stat-stars">0</span>
+                </div>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted);">
+                استكشاف فضاء ثلاثي الأبعاد
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="add-modal">
+        <div class="modal-card glass-panel interactive">
+            <div class="modal-header">
+                <div class="modal-title">تخليد اسمك في الكون</div>
+                <button class="close-btn" id="close-add-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="add-star-form">
+                <div class="form-group">
+                    <label>الاسم الكامل / المستعار</label>
+                    <input type="text" id="star-name" class="input-control" placeholder="أدخل اسمك هنا..." required maxlength="25">
+                </div>
+                <div class="form-group">
+                    <label>اختر الدولة (المجرة)</label>
+                    <select id="star-country" class="input-control" required></select>
+                </div>
+                <div class="form-group">
+                    <label>اختر أيقونتك الرمزية (Avatar)</label>
+                    <div class="avatar-grid" id="avatar-selector">
+                        <div class="avatar-option selected" data-avatar="🚀">🚀</div>
+                        <div class="avatar-option" data-avatar="⭐">⭐</div>
+                        <div class="avatar-option" data-avatar="👾">👾</div>
+                        <div class="avatar-option" data-avatar="🛸">🛸</div>
+                        <div class="avatar-option" data-avatar="👑">👑</div>
+                        <div class="avatar-option" data-avatar="💎">💎</div>
+                        <div class="avatar-option" data-avatar="🔥">🔥</div>
+                        <div class="avatar-option" data-avatar="🌙">🌙</div>
+                        <div class="avatar-option" data-avatar="⚡">⚡</div>
+                        <div class="avatar-option" data-avatar="🎯">🎯</div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 15px; justify-content: center;">
+                    <i class="fa-solid fa-rocket"></i> أطلق نجمتي الآن
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="admin-modal">
+        <div class="modal-card glass-panel interactive">
+            <div class="modal-header">
+                <div class="modal-title">🔒 لوحة الإدارة الآمنة</div>
+                <button class="close-btn" id="close-admin-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div id="admin-auth-section" style="text-align: center; padding: 10px 0;">
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;" id="auth-status-msg">
+                    أدخل مفتاح المرور السري للأدمن:
+                </p>
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="password" id="admin-password-input" class="input-control" placeholder="أدخل كلمة السر السرية...">
+                </div>
+                <button class="btn btn-primary" id="verify-admin-pass-btn" style="width: 100%; justify-content: center;">
+                    تحقق وفك القفل
+                </button>
+            </div>
+
+            <div class="admin-controls" id="admin-active-tools" style="display: none;">
+                <p style="font-size: 13px; color: var(--accent-cyan); margin-bottom: 10px; text-align: center;">
+                    ✅ تم التحقق بنجاح!
+                </p>
+                <div class="toggle-switch">
+                    <span>وضع الاختبار (Unlimited Mode)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="unlimited-mode-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <button class="btn" id="export-data-btn" style="margin-top: 10px; justify-content: center;">
+                    <i class="fa-solid fa-file-excel"></i> تصدير البيانات (Excel/CSV)
+                </button>
+            </div>
+        </div>
+    </div>
+    <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مجرات | Majarat 3D</title>
+    <!-- Google Fonts: Tajawal -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-dark: #030712;
+            --panel-bg: rgba(15, 23, 42, 0.85);
+            --panel-border: rgba(255, 255, 255, 0.12);
+            --accent-cyan: #38bdf8;
+            --accent-purple: #c084fc;
+            --accent-gold: #fbbf24;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+        }
+
+        #webgl-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        .interactive {
+            pointer-events: auto;
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 12px 24px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+        }
+
+        .logo i {
+            -webkit-text-fill-color: initial;
+            color: var(--accent-cyan);
+            font-size: 28px;
+            filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.6));
+        }
+
+        .controls-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-main);
+            padding: 10px 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: var(--accent-cyan);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0284c7, #6366f1);
+            border: none;
+        }
+
+        .btn-rocket {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            border: none;
+            color: #fff;
+        }
+
+        .btn-admin {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            display: none;
+        }
+
+        .search-container {
+            position: absolute;
+            top: 90px;
+            right: 20px;
+            width: 320px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group i {
+            position: absolute;
+            right: 14px;
+            color: var(--text-muted);
+        }
+
+        .input-control {
+            width: 100%;
+            padding: 10px 40px 10px 14px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .input-control:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        select.input-control {
+            appearance: none;
+            cursor: pointer;
+        }
+
+        select.input-control option {
+            background: #0f172a;
+            color: #fff;
+        }
+
+        .flight-hud {
+            position: absolute;
+            top: 90px;
+            left: 20px;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            display: none;
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+        }
+
+        .flight-hud.active {
+            display: flex;
+        }
+
+        .hud-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hud-stat {
+            font-size: 13px;
+            color: var(--text-main);
+        }
+
+        .mobile-flight-controls {
+            position: absolute;
+            bottom: 25px;
+            left: 20px;
+            right: 20px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: auto;
+            z-index: 25;
+        }
+
+        .mobile-flight-controls.active {
+            display: flex;
+        }
+
+        .dpad {
+            display: grid;
+            grid-template-columns: repeat(3, 50px);
+            grid-template-rows: repeat(2, 50px);
+            gap: 8px;
+            justify-items: center;
+            align-items: center;
+        }
+
+        .touch-btn {
+            background: rgba(56, 189, 248, 0.2);
+            border: 1px solid var(--accent-cyan);
+            color: #fff;
+            font-size: 18px;
+            border-radius: 12px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .touch-btn:active, .touch-btn.pressed {
+            background: rgba(56, 189, 248, 0.6);
+            transform: scale(0.95);
+        }
+
+        .altitude-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .touch-btn-alt {
+            width: 70px;
+            height: 45px;
+            font-size: 13px;
+            font-weight: 700;
+            background: rgba(245, 158, 11, 0.2);
+            border-color: var(--accent-gold);
+        }
+
+        .info-card {
+            position: absolute;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            width: 320px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 50;
+        }
+
+        .info-card.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .info-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+
+        .info-details {
+            text-align: center;
+        }
+
+        .info-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .info-country {
+            font-size: 13px;
+            color: var(--accent-cyan);
+            margin-top: 2px;
+        }
+
+        .info-date {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .bottom-bar {
+            width: 100%;
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .stats-badge {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 14px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-muted);
+        }
+
+        .stat-item span {
+            color: var(--accent-cyan);
+            font-weight: 700;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(3, 7, 18, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            width: 90%;
+            max-width: 440px;
+            padding: 28px;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .avatar-option {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .avatar-option.selected {
+            border-color: var(--accent-cyan);
+            background: rgba(56, 189, 248, 0.2);
+        }
+
+        .admin-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 15px;
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255,255,255,0.2);
+            transition: .4s;
+            border-radius: 22px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent-cyan);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+    </style>
+
+    <!-- Three.js & Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+    <div id="webgl-container"></div>
+
+    <div class="ui-layer">
+        <header class="glass-panel interactive">
+            <div class="logo" id="stealth-logo-click">
+                <i class="fa-solid fa-orbit"></i>
+                <span>مَجَرّات</span>
+            </div>
+            <div class="controls-top">
+                <button class="btn btn-rocket" id="toggle-flight-btn">
+                    <i class="fa-solid fa-rocket"></i>
+                    <span id="flight-btn-text">وضع الصاروخ</span>
+                </button>
+                <button class="btn btn-primary" id="open-add-btn">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>أضف نجمتك</span>
+                </button>
+                <button class="btn" id="reset-cam-btn" title="إعادة ضبط الكاميرا">
+                    <i class="fa-solid fa-compress"></i>
+                </button>
+                <button class="btn btn-admin" id="admin-panel-btn" title="لوحة التحكم الخفية">
+                    <i class="fa-solid fa-user-shield"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="search-container glass-panel interactive">
+            <div class="input-group">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="search-input" class="input-control" placeholder="ابحث عن اسم أو نجمة...">
+            </div>
+            <div class="input-group">
+                <i class="fa-solid fa-globe"></i>
+                <select id="country-filter" class="input-control">
+                    <option value="ALL">جميع مجرات الدول</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="flight-hud glass-panel" id="flight-hud">
+            <div class="hud-title">
+                <i class="fa-solid fa-gauge-high"></i> قيادة الصاروخ بفيزيائية الفضاء
+            </div>
+            <div class="hud-stat"><b>W / S:</b> دفع الصاروخ للأمام والعكس</div>
+            <div class="hud-stat"><b>A / D:</b> الدوران يميناً ويساراً</div>
+            <div class="hud-stat"><b>R / F:</b> الارتفاع والنزول</div>
+            <div class="hud-stat">💎 البلورات: <span id="crystals-count" style="color:var(--accent-cyan); font-weight:700;">0</span> / 12</div>
+        </div>
+
+        <div class="mobile-flight-controls glass-panel" id="mobile-controls">
+            <div class="dpad">
+                <div></div>
+                <button class="touch-btn" data-key="w">⬆️</button>
+                <div></div>
+                <button class="touch-btn" data-key="a">⬅️</button>
+                <button class="touch-btn" data-key="s">⬇️</button>
+                <button class="touch-btn" data-key="d">➡️</button>
+            </div>
+            <div class="altitude-controls">
+                <button class="touch-btn touch-btn-alt" data-key="r">🚀 صعود</button>
+                <button class="touch-btn touch-btn-alt" data-key="f">🔻 هبوط</button>
+            </div>
+        </div>
+
+        <div class="info-card glass-panel interactive" id="info-card">
+            <div class="info-avatar" id="card-avatar">🚀</div>
+            <div class="info-details">
+                <div class="info-name" id="card-name">اسم المشارك</div>
+                <div class="info-country" id="card-country">المملكة المغربية</div>
+                <div class="info-date" id="card-date">انضم: 2026-10-24</div>
+            </div>
+            <button class="btn btn-admin" id="delete-star-btn" style="display:none; width:100%; margin-top:8px; justify-content:center;">
+                <i class="fa-solid fa-trash"></i> حذف النجمة (الأدمن)
+            </button>
+        </div>
+
+        <div class="bottom-bar glass-panel interactive">
+            <div class="stats-badge">
+                <div class="stat-item">
+                    <i class="fa-solid fa-planet-ringed"></i>
+                    المجرات: <span id="stat-galaxies">0</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fa-solid fa-star"></i>
+                    النجوم: <span id="stat-stars">0</span>
+                </div>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted);">
+                استكشاف فضاء ثلاثي الأبعاد
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="add-modal">
+        <div class="modal-card glass-panel interactive">
+            <div class="modal-header">
+                <div class="modal-title">تخليد اسمك في الكون</div>
+                <button class="close-btn" id="close-add-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="add-star-form">
+                <div class="form-group">
+                    <label>الاسم الكامل / المستعار</label>
+                    <input type="text" id="star-name" class="input-control" placeholder="أدخل اسمك هنا..." required maxlength="25">
+                </div>
+                <div class="form-group">
+                    <label>اختر الدولة (المجرة)</label>
+                    <select id="star-country" class="input-control" required></select>
+                </div>
+                <div class="form-group">
+                    <label>اختر أيقونتك الرمزية (Avatar)</label>
+                    <div class="avatar-grid" id="avatar-selector">
+                        <div class="avatar-option selected" data-avatar="🚀">🚀</div>
+                        <div class="avatar-option" data-avatar="⭐">⭐</div>
+                        <div class="avatar-option" data-avatar="👾">👾</div>
+                        <div class="avatar-option" data-avatar="🛸">🛸</div>
+                        <div class="avatar-option" data-avatar="👑">👑</div>
+                        <div class="avatar-option" data-avatar="💎">💎</div>
+                        <div class="avatar-option" data-avatar="🔥">🔥</div>
+                        <div class="avatar-option" data-avatar="🌙">🌙</div>
+                        <div class="avatar-option" data-avatar="⚡">⚡</div>
+                        <div class="avatar-option" data-avatar="🎯">🎯</div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 15px; justify-content: center;">
+                    <i class="fa-solid fa-rocket"></i> أطلق نجمتي الآن
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="admin-modal">
+        <div class="modal-card glass-panel interactive">
+            <div class="modal-header">
+                <div class="modal-title">🔒 لوحة الإدارة الآمنة</div>
+                <button class="close-btn" id="close-admin-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div id="admin-auth-section" style="text-align: center; padding: 10px 0;">
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;" id="auth-status-msg">
+                    أدخل مفتاح المرور السري للأدمن:
+                </p>
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="password" id="admin-password-input" class="input-control" placeholder="أدخل كلمة السر السرية...">
+                </div>
+                <button class="btn btn-primary" id="verify-admin-pass-btn" style="width: 100%; justify-content: center;">
+                    تحقق وفك القفل
+                </button>
+            </div>
+
+            <div class="admin-controls" id="admin-active-tools" style="display: none;">
+                <p style="font-size: 13px; color: var(--accent-cyan); margin-bottom: 10px; text-align: center;">
+                    ✅ تم التحقق بنجاح!
+                </p>
+                <div class="toggle-switch">
+                    <span>وضع الاختبار (Unlimited Mode)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="unlimited-mode-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <button class="btn" id="export-data-btn" style="margin-top: 10px; justify-content: center;">
+                    <i class="fa-solid fa-file-excel"></i> تصدير البيانات (Excel/CSV)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GALAXIES_CONFIG = [
+            { id: 'MA', name: 'المغرب', color: '#ef4444', x: 0, y: 0, z: 0 },
+            { id: 'SA', name: 'السعودية', color: '#10b981', x: 120, y: 30, z: -80 },
+            { id: 'EG', name: 'مصر', color: '#f59e0b', x: -110, y: -20, z: 90 },
+            { id: 'DZ', name: 'الجزائر', color: '#06b6d4', x: -130, y: 40, z: -100 },
+            { id: 'AE', name: 'الإمارات', color: '#8b5cf6', x: 100, y: -40, z: 110 },
+            { id: 'TN', name: 'تونس', color: '#ec4899', x: 50, y: 70, z: 130 },
+            { id: 'IQ', name: 'العراق', color: '#3b82f6', x: -80, y: -60, z: -120 },
+            { id: 'JO', name: 'الأردن', color: '#f97316', x: 70, y: -50, z: -90 }
+        ];
+
+        let starsData = [];
+        let isAdmin = false;
+        let unlimitedMode = false;
+        let userHasAddedStar = false;
+        let selectedAvatar = '🚀';
+        let activeSelectedObject = null;
+
+        let isFlightMode = false;
+        let rocketMesh, flameOuter, flameInner;
+        let crystalsGroup;
+        let collectedCrystalsCount = 0;
+        let crystalsList = [];
+        
+        const velocity = new THREE.Vector3();
+        let angularVelocity = 0;
+        const acceleration = 0.08;
+        const drag = 0.96;
+        const angularDrag = 0.90;
+        const maxSpeed = 3.5;
+        const keysPressed = {};
+
+        let scene, camera, renderer, controls;
+        let galaxiesGroup, starsObjectsMap, galaxyCentersMap, raycaster, mouse;
+
+        function init() {
+            if (localStorage.getItem('majarat_admin') === 'true') {
+                enableAdminMode();
+            }
+
+            loadLocalData();
+
+            const container = document.getElementById('webgl-container');
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x030712, 0.0012);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 3000);
+            camera.position.set(0, 150, 300);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.3;
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxDistance = 1000;
+            controls.minDistance = 20;
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            galaxiesGroup = new THREE.Group();
+            crystalsGroup = new THREE.Group();
+            starsObjectsMap = new Map();
+            galaxyCentersMap = new Map();
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            scene.add(galaxiesGroup);
+            scene.add(crystalsGroup);
+
+            createSpaceBackground();
+            createGalaxies();
+            createSpaceCrystals();
+            createRocketShip();
+
+            populateCountrySelects();
+            updateStats();
+
+            window.addEventListener('keydown', (e) => keysPressed[e.key.toLowerCase()] = true);
+            window.addEventListener('keyup', (e) => keysPressed[e.key.toLowerCase()] = false);
+
+            setupMobileTouchControls();
+
+            window.addEventListener('resize', onWindowResize);
+            renderer.domElement.addEventListener('pointerdown', onPointerDown);
+
+            setupUIHandlers();
+            setupStealthAdminKeyListeners();
+            setupSecureAuth();
+            animate();
+        }
+
+        function loadLocalData() {
+            const saved = localStorage.getItem('majarat_stars');
+            if (saved) {
+                starsData = JSON.parse(saved);
+            } else {
+                starsData = [];
+                saveLocalData();
+            }
+            userHasAddedStar = localStorage.getItem('majarat_added_star') === 'true';
+        }
+
+        function saveLocalData() {
+            localStorage.setItem('majarat_stars', JSON.stringify(starsData));
+            updateStats();
+        }
+
+        function createSpaceBackground() {
+            const count = 4000;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+            const colors = new Float32Array(count * 3);
+
+            for (let i = 0; i < count; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 1500;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 1500;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 1500;
+                const c = new THREE.Color();
+                c.setHSL(Math.random(), 0.8, 0.85);
+                colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b;
+            }
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({ size: 2.2, vertexColors: true, transparent: true, opacity: 0.85 });
+            scene.add(new THREE.Points(geometry, material));
+        }
+
+        function createGalaxies() {
+            GALAXIES_CONFIG.forEach(country => {
+                const galaxyGroup = new THREE.Group();
+                galaxyGroup.position.set(country.x, country.y, country.z);
+
+                const coreGeo = new THREE.SphereGeometry(6, 32, 32);
+                const coreMat = new THREE.MeshBasicMaterial({ color: country.color, wireframe: true, transparent: true, opacity: 0.6 });
+                galaxyGroup.add(new THREE.Mesh(coreGeo, coreMat));
+
+                galaxyGroup.add(new THREE.PointLight(country.color, 3, 100));
+
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 256; canvas.height = 64;
+                ctx.fillStyle = '#ffffff'; ctx.font = 'Bold 32px Tajawal'; ctx.textAlign = 'center';
+                ctx.fillText(country.name, 128, 44);
+                
+                const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true }));
+                sprite.position.set(0, 14, 0); sprite.scale.set(30, 7.5, 1);
+                galaxyGroup.add(sprite);
+
+                const orbitGroup = new THREE.Group();
+                galaxyGroup.add(orbitGroup);
+                galaxyGroup.userData = { orbitGroup, country, starCount: 0 };
+
+                galaxiesGroup.add(galaxyGroup);
+                galaxyCentersMap.set(country.id, galaxyGroup);
+            });
+            renderAllStars();
+        }
+
+        function createSpaceCrystals() {
+            const crystalGeo = new THREE.OctahedronGeometry(3, 0);
+            const crystalMat = new THREE.MeshStandardMaterial({
+                color: 0x38bdf8,
+                emissive: 0x38bdf8,
+                emissiveIntensity: 0.9,
+                roughness: 0.1,
+                metalness: 0.8
+            });
+
+            for (let i = 0; i < 12; i++) {
+                const crystal = new THREE.Mesh(crystalGeo, crystalMat);
+                crystal.position.set(
+                    (Math.random() - 0.5) * 400,
+                    (Math.random() - 0.5) * 150,
+                    (Math.random() - 0.5) * 400
+                );
+                crystal.userData = { id: 'crystal_' + i, collected: false };
+                crystalsGroup.add(crystal);
+                crystalsList.push(crystal);
+            }
+        }
+
+        function createRocketShip() {
+            const rocketGroup = new THREE.Group();
+            
+            const bodyGeo = new THREE.ConeGeometry(1.5, 6, 16);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0xf3f4f6, roughness: 0.2, metalness: 0.9 });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.rotation.x = Math.PI / 2;
+            rocketGroup.add(body);
+
+            const tipGeo = new THREE.ConeGeometry(1.5, 2, 16);
+            const tipMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.2 });
+            const tip = new THREE.Mesh(tipGeo, tipMat);
+            tip.position.z = 4;
+            tip.rotation.x = Math.PI / 2;
+            rocketGroup.add(tip);
+
+            const flameGeo = new THREE.ConeGeometry(1.2, 5, 16);
+            const flameMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.9 });
+            flameOuter = new THREE.Mesh(flameGeo, flameMat);
+            flameOuter.position.z = -5.5;
+            flameOuter.rotation.x = -Math.PI / 2;
+            rocketGroup.add(flameOuter);
+
+            const innerFlameGeo = new THREE.ConeGeometry(0.6, 3.5, 16);
+            const innerFlameMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.95 });
+            flameInner = new THREE.Mesh(innerFlameGeo, innerFlameMat);
+            flameInner.position.z = -5;
+            flameInner.rotation.x = -Math.PI / 2;
+            rocketGroup.add(flameInner);
+
+            rocketGroup.position.set(0, 0, 50);
+            rocketGroup.visible = false;
+            scene.add(rocketGroup);
+            rocketMesh = rocketGroup;
+        }
+
+        function renderAllStars() {
+            galaxyCentersMap.forEach(gGroup => {
+                const orbitGroup = gGroup.userData.orbitGroup;
+                while (orbitGroup.children.length > 0) orbitGroup.remove(orbitGroup.children[0]);
+            });
+            starsObjectsMap.clear();
+
+            const countryStars = {};
+            starsData.forEach(s => {
+                if (!countryStars[s.country]) countryStars[s.country] = [];
+                countryStars[s.country].push(s);
+            });
+
+            Object.keys(countryStars).forEach(cId => {
+                const gGroup = galaxyCentersMap.get(cId);
+                if (!gGroup) return;
+                const list = countryStars[cId];
+                const orbitGroup = gGroup.userData.orbitGroup;
+
+                list.forEach((star, index) => {
+                    const ringIndex = Math.floor(index / 8);
+                    const orbitRadius = 18 + ringIndex * 12;
+                    const angle = (index % 8) * (Math.PI * 2 / 8) + (ringIndex * 0.4);
+
+                    const starMesh = new THREE.Mesh(
+                        new THREE.SphereGeometry(1.8, 16, 16),
+                        new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: gGroup.userData.country.color, emissiveIntensity: 0.9, roughness: 0.2, metalness: 0.8 })
+                    );
+                    starMesh.position.x = Math.cos(angle) * orbitRadius;
+                    starMesh.position.z = Math.sin(angle) * orbitRadius;
+                    starMesh.position.y = Math.sin(angle * 2) * 3;
+                    starMesh.userData = { ...star, orbitRadius, angle };
+                    orbitGroup.add(starMesh);
+                    starsObjectsMap.set(star.id, starMesh);
+                });
+            });
+        }
+
+        function animate(time) {
+            requestAnimationFrame(animate);
+            if (typeof TWEEN !== 'undefined') TWEEN.update();
+
+            if (galaxyCentersMap) {
+                galaxyCentersMap.forEach(gGroup => {
+                    gGroup.userData.orbitGroup.rotation.y += 0.003;
+                });
+            }
+
+            crystalsList.forEach(c => {
+                if (!c.userData.collected) {
+                    c.rotation.x += 0.012;
+                    c.rotation.y += 0.022;
+                }
+            });
+
+            if (isFlightMode && rocketMesh) {
+                let isAccelerating = false;
+
+                if (keysPressed['a']) { angularVelocity += 0.003; }
+                if (keysPressed['d']) { angularVelocity -= 0.003; }
+                rocketMesh.rotation.y += angularVelocity;
+                angularVelocity *= angularDrag;
+
+                const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(rocketMesh.quaternion);
+                if (keysPressed['w']) {
+                    velocity.addScaledVector(forward, acceleration);
+                    isAccelerating = true;
+                }
+                if (keysPressed['s']) {
+                    velocity.addScaledVector(forward, -acceleration * 0.5);
+                    isAccelerating = true;
+                }
+
+                if (keysPressed['r']) { velocity.y += acceleration; isAccelerating = true; }
+                if (keysPressed['f']) { velocity.y -= acceleration; isAccelerating = true; }
+
+                velocity.clampLength(0, maxSpeed);
+                rocketMesh.position.add(velocity);
+                velocity.multiplyScalar(drag);
+
+                if (flameOuter && flameInner) {
+                    const pulse = 1 + Math.sin(time * 0.04) * 0.35;
+                    flameOuter.scale.set(pulse, isAccelerating ? 1.8 : 1, pulse);
+                    flameInner.scale.set(pulse, isAccelerating ? 2.0 : 1, pulse);
+                }
+
+                const camOffset = new THREE.Vector3(0, 7, 20).applyQuaternion(rocketMesh.quaternion);
+                camera.position.lerp(rocketMesh.position.clone().add(camOffset), 0.1);
+                camera.lookAt(rocketMesh.position);
+
+                crystalsList.forEach(c => {
+                    if (!c.userData.collected && rocketMesh.position.distanceTo(c.position) < 8) {
+                        c.userData.collected = true;
+                        c.visible = false;
+                        collectedCrystalsCount++;
+                        document.getElementById('crystals-count').innerText = collectedCrystalsCount;
+                    }
+                });
+            }
+
+            if (!isFlightMode && controls) controls.update();
+            if (renderer && scene && camera) renderer.render(scene, camera);
+        }
+
+        function setupMobileTouchControls() {
+            document.querySelectorAll('.touch-btn').forEach(btn => {
+                const key = btn.getAttribute('data-key');
+                const pressOn = (e) => { e.preventDefault(); keysPressed[key] = true; btn.classList.add('pressed'); };
+                const pressOff = (e) => { e.preventDefault(); keysPressed[key] = false; btn.classList.remove('pressed'); };
+
+                btn.addEventListener('touchstart', pressOn, { passive: false });
+                btn.addEventListener('touchend', pressOff, { passive: false });
+                btn.addEventListener('touchcancel', pressOff, { passive: false });
+                btn.addEventListener('mousedown', pressOn);
+                btn.addEventListener('mouseup', pressOff);
+                btn.addEventListener('mouseleave', pressOff);
+            });
+        }
+
+        function setupStealthAdminKeyListeners() {
+            window.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
+                    e.preventDefault();
+                    document.getElementById('admin-modal').classList.add('active');
+                }
+            });
+
+            let lastClickTime = 0;
+            document.getElementById('stealth-logo-click').addEventListener('click', () => {
+                const now = Date.now();
+                if (now - lastClickTime < 400) {
+                    document.getElementById('admin-modal').classList.add('active');
+                }
+                lastClickTime = now;
+            });
+        }
+
+        function setupSecureAuth() {
+            const SECURE_PASSWORD = "zakariya2026"; 
+            
+            document.getElementById('verify-admin-pass-btn').addEventListener('click', () => {
+                const inputVal = document.getElementById('admin-password-input').value;
+                const statusMsg = document.getElementById('auth-status-msg');
+
+                if (inputVal === SECURE_PASSWORD) {
+                    enableAdminMode();
+                    document.getElementById('admin-auth-section').style.display = 'none';
+                    document.getElementById('admin-active-tools').style.display = 'flex';
+                } else {
+                    statusMsg.innerText = "❌ كلمة المرور غير صحيحة! جرب مجدداً.";
+                    statusMsg.style.color = "#ef4444";
+                }
+            });
+        }
+
+        function enableAdminMode() {
+            isAdmin = true;
+            localStorage.setItem('majarat_admin', 'true');
+            document.getElementById('admin-panel-btn').style.display = 'flex';
+            const delBtn = document.getElementById('delete-star-btn');
+            if (delBtn) delBtn.style.display = 'flex';
+        }
+
+        function setupUIHandlers() {
+            document.getElementById('toggle-flight-btn').addEventListener('click', () => {
+                isFlightMode = !isFlightMode;
+                const btnText = document.getElementById('flight-btn-text');
+                const hud = document.getElementById('flight-hud');
+                const mobileControls = document.getElementById('mobile-controls');
+
+                if (isFlightMode) {
+                    btnText.innerText = 'الوضع العادي';
+                    hud.classList.add('active');
+                    mobileControls.classList.add('active');
+                    rocketMesh.visible = true;
+                    rocketMesh.position.set(0, 0, 50);
+                    rocketMesh.rotation.set(0, 0, 0);
+                    velocity.set(0, 0, 0);
+                    angularVelocity = 0;
+                    controls.enabled = false;
+                } else {
+                    btnText.innerText = 'وضع الصاروخ';
+                    hud.classList.remove('active');
+                    mobileControls.classList.remove('active');
+                    rocketMesh.visible = false;
+                    controls.enabled = true;
+                    camera.position.set(0, 150, 300);
+                    controls.target.set(0, 0, 0);
+                }
+            });
+
+            document.getElementById('open-add-btn').addEventListener('click', () => {
+                if (userHasAddedStar && !unlimitedMode) {
+                    alert('لقد قمت بإضافة نجمتك في الكون بالفعل!');
+                    return;
+                }
+                document.getElementById('add-modal').classList.add('active');
+            });
+
+            document.getElementById('close-add-modal').addEventListener('click', () => document.getElementById('add-modal').classList.remove('active'));
+            document.getElementById('close-admin-modal').addEventListener('click', () => document.getElementById('admin-modal').classList.remove('active'));
+            document.getElementById('admin-panel-btn').addEventListener('click', () => {
+                localStorage.removeItem('majarat_lockout');
+                localStorage.removeItem('majarat_fail_count');
+                document.getElementById('admin-modal').classList.add('active');
+            });
+
+            document.querySelectorAll('.avatar-option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    document.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
+                    opt.classList.add('selected');
+                    selectedAvatar = opt.getAttribute('data-avatar');
+                });
+            });
+
+            document.getElementById('add-star-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('star-name').value.trim();
+                const country = document.getElementById('star-country').value;
+                if (!name || !country) return;
+
+                const newStar = { id: 'star_' + Date.now(), name, country, avatar: selectedAvatar, date: new Date().toISOString().split('T')[0] };
+                starsData.push(newStar);
+                saveLocalData();
+                renderAllStars();
+
+                if (!unlimitedMode) { userHasAddedStar = true; localStorage.setItem('majarat_added_star', 'true'); }
+                document.getElementById('add-modal').classList.remove('active');
+                document.getElementById('add-star-form').reset();
+                setTimeout(() => focusOnStar(newStar.id), 400);
+            });
+
+            document.getElementById('reset-cam-btn').addEventListener('click', () => {
+                if (isFlightMode) return;
+                focusOnPosition(new THREE.Vector3(0, 150, 300), new THREE.Vector3(0, 0, 0));
+                hideInfoCard();
+            });
+
+            document.getElementById('country-filter').addEventListener('change', (e) => {
+                if (isFlightMode) return;
+                const val = e.target.value;
+                if (val === 'ALL') focusOnPosition(new THREE.Vector3(0, 150, 300), new THREE.Vector3(0, 0, 0));
+                else {
+                    const gGroup = galaxyCentersMap.get(val);
+                    if (gGroup) focusOnPosition(gGroup.position.clone().add(new THREE.Vector3(0, 40, 80)), gGroup.position.clone());
+                }
+            });
+
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                const query = e.target.value.trim().toLowerCase();
+                if (!query) return;
+                const found = starsData.find(s => s.name.toLowerCase().includes(query));
+                if (found) focusOnStar(found.id);
+            });
+
+            document.getElementById('unlimited-mode-toggle').addEventListener('change', (e) => unlimitedMode = e.target.checked);
+
+            document.getElementById('delete-star-btn').addEventListener('click', () => {
+                if (!activeSelectedObject || !isAdmin) return;
+                starsData = starsData.filter(s => s.id !== activeSelectedObject.userData.id);
+                saveLocalData();
+                renderAllStars();
+                hideInfoCard();
+            });
+
+            document.getElementById('export-data-btn').addEventListener('click', () => {
+                if (typeof XLSX === 'undefined') return;
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(starsData), "Stars");
+                XLSX.writeFile(wb, "Majarat_Stars_Data.xlsx");
+            });
+        }
+
+        function populateCountrySelects() {
+            const filterSelect = document.getElementById('country-filter');
+            const formSelect = document.getElementById('star-country');
+            GALAXIES_CONFIG.forEach(c => {
+                filterSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                formSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('stat-galaxies').innerText = GALAXIES_CONFIG.length;
+            document.getElementById('stat-stars').innerText = starsData.length;
+        }
+
+        function onPointerDown(event) {
+            if (isFlightMode || (event.clientY < 80 && event.clientX < 300)) return;
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+
+            const intersects = raycaster.intersectObjects(scene.children, true);
+            for (let i = 0; i < intersects.length; i++) {
+                const obj = intersects[i].object;
+                if (obj.userData && obj.userData.id) {
+                    activeSelectedObject = obj;
+                    showInfoCard(obj.userData);
+                    const worldPos = new THREE.Vector3();
+                    obj.getWorldPosition(worldPos);
+                    focusOnPosition(worldPos.clone().add(new THREE.Vector3(0, 12, 25)), worldPos);
+                    return;
+                }
+            }
+        }
+
+        function focusOnStar(starId) {
+            const starMesh = starsObjectsMap.get(starId);
+            if (starMesh) {
+                activeSelectedObject = starMesh;
+                showInfoCard(starMesh.userData);
+                const worldPos = new THREE.Vector3();
+                starMesh.getWorldPosition(worldPos);
+                focusOnPosition(worldPos.clone().add(new THREE.Vector3(0, 12, 25)), worldPos);
+            }
+        }
+
+        function focusOnPosition(targetCamPos, targetLookAt) {
+            if (typeof TWEEN !== 'undefined') {
+                new TWEEN.Tween(camera.position).to(targetCamPos, 1200).easing(TWEEN.Easing.Cubic.Out).start();
+                new TWEEN.Tween(controls.target).to(targetLookAt, 1200).easing(TWEEN.Easing.Cubic.Out).start();
+            }
+        }
+
+        function showInfoCard(data) {
+            const countryObj = GALAXIES_CONFIG.find(c => c.id === data.country);
+            document.getElementById('card-avatar').innerText = data.avatar || '⭐';
+            document.getElementById('card-name').innerText = data.name;
+            document.getElementById('card-country').innerText = countryObj ? countryObj.name : data.country;
+            document.getElementById('card-date').innerText = 'انضم: ' + (data.date || '2026-10-24');
+            document.getElementById('delete-star-btn').style.display = isAdmin ? 'flex' : 'none';
+            document.getElementById('info-card').classList.add('active');
+        }
+
+        function hideInfoCard() {
+            document.getElementById('info-card').classList.remove('active');
+            activeSelectedObject = null;
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
