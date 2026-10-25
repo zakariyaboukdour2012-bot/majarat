@@ -589,14 +589,15 @@
             <div class="hud-stat">💎 البلورات: <span id="crystals-count" style="color:var(--accent-cyan); font-weight:700;">0</span> / 12</div>
         </div>
 
+        <!-- الأزرار مع تعديل أشكال اليمين واليسار بصرياً لتتوافق مع التحكم -->
         <div class="mobile-flight-controls glass-panel" id="mobile-controls">
             <div class="dpad">
                 <div></div>
                 <button class="touch-btn" data-key="w">⬆️</button>
                 <div></div>
-                <button class="touch-btn" data-key="d">⬅️</button>
-                <button class="touch-btn" data-key="s">⬇️</button>
                 <button class="touch-btn" data-key="a">➡️</button>
+                <button class="touch-btn" data-key="s">⬇️</button>
+                <button class="touch-btn" data-key="d">⬅️</button>
             </div>
             <div class="altitude-controls">
                 <button class="touch-btn touch-btn-alt" data-key="r">🚀 صعود</button>
@@ -735,6 +736,7 @@
         
         const velocity = new THREE.Vector3();
         let angularVelocity = 0;
+        let tiltVelocity = 0; // لضبط الإمالة الواقعية عند الصعود والهبوط
         const acceleration = 0.08;
         const drag = 0.96;
         const angularDrag = 0.90;
@@ -896,31 +898,33 @@
         function createRocketShip() {
             const rocketGroup = new THREE.Group();
             
+            // تصحيح اتجاه رأس وسجادة الصاروخ ليكون المدبب للأمام والنار للخلف
             const bodyGeo = new THREE.ConeGeometry(1.5, 6, 16);
             const bodyMat = new THREE.MeshStandardMaterial({ color: 0xf3f4f6, roughness: 0.2, metalness: 0.9 });
             const body = new THREE.Mesh(bodyGeo, bodyMat);
-            body.rotation.x = Math.PI / 2;
+            body.rotation.x = -Math.PI / 2; // عدّلنا الاتجاه ليكون للأمام
             rocketGroup.add(body);
 
             const tipGeo = new THREE.ConeGeometry(1.5, 2, 16);
             const tipMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.2 });
             const tip = new THREE.Mesh(tipGeo, tipMat);
-            tip.position.z = 4;
-            tip.rotation.x = Math.PI / 2;
+            tip.position.z = -4; // مقدمة الصاروخ في الاتجاه الصحيح
+            tip.rotation.x = -Math.PI / 2;
             rocketGroup.add(tip);
 
+            // النار واللهب في الخلف تماماً
             const flameGeo = new THREE.ConeGeometry(1.2, 5, 16);
             const flameMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.9 });
             flameOuter = new THREE.Mesh(flameGeo, flameMat);
-            flameOuter.position.z = -5.5;
-            flameOuter.rotation.x = -Math.PI / 2;
+            flameOuter.position.z = 5.5; 
+            flameOuter.rotation.x = Math.PI / 2;
             rocketGroup.add(flameOuter);
 
             const innerFlameGeo = new THREE.ConeGeometry(0.6, 3.5, 16);
             const innerFlameMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.95 });
             flameInner = new THREE.Mesh(innerFlameGeo, innerFlameMat);
-            flameInner.position.z = -5;
-            flameInner.rotation.x = -Math.PI / 2;
+            flameInner.position.z = 5;
+            flameInner.rotation.x = Math.PI / 2;
             rocketGroup.add(flameInner);
 
             rocketGroup.position.set(0, 0, 50);
@@ -988,12 +992,12 @@
             if (isFlightMode && rocketMesh) {
                 let isAccelerating = false;
 
-                if (keysPressed['a']) { angularVelocity -= 0.003; }
                 if (keysPressed['d']) { angularVelocity += 0.003; }
+                if (keysPressed['a']) { angularVelocity -= 0.003; }
                 rocketMesh.rotation.y += angularVelocity;
                 angularVelocity *= angularDrag;
 
-                const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(rocketMesh.quaternion);
+                const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(rocketMesh.quaternion);
                 if (keysPressed['w']) {
                     velocity.addScaledVector(forward, acceleration);
                     isAccelerating = true;
@@ -1003,8 +1007,20 @@
                     isAccelerating = true;
                 }
 
-                if (keysPressed['r']) { velocity.y += acceleration; isAccelerating = true; }
-                if (keysPressed['f']) { velocity.y -= acceleration; isAccelerating = true; }
+                // إمالة واقعية للصاروخ (مقدمته ترتفع عند الصعود وتنخفض عند الهبوط)
+                let targetTilt = 0;
+                if (keysPressed['r']) { 
+                    velocity.y += acceleration; 
+                    isAccelerating = true; 
+                    targetTilt = 0.35; // ميل للأعلى
+                } else if (keysPressed['f']) { 
+                    velocity.y -= acceleration; 
+                    isAccelerating = true; 
+                    targetTilt = -0.35; // ميل للأسفل
+                }
+                
+                // تنعيم حركة الميل بـ lerp لتكون جذابة وواقعية
+                rocketMesh.rotation.x = THREE.MathUtils.lerp(rocketMesh.rotation.x, targetTilt, 0.1);
 
                 velocity.clampLength(0, maxSpeed);
                 rocketMesh.position.add(velocity);
@@ -1016,7 +1032,7 @@
                     flameInner.scale.set(pulse, isAccelerating ? 2.0 : 1, pulse);
                 }
 
-                const camOffset = new THREE.Vector3(0, 7, 20).applyQuaternion(rocketMesh.quaternion);
+                const camOffset = new THREE.Vector3(0, 7, -20).applyQuaternion(rocketMesh.quaternion);
                 camera.position.lerp(rocketMesh.position.clone().add(camOffset), 0.1);
                 camera.lookAt(rocketMesh.position);
 
