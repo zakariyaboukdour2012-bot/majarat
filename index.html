@@ -745,7 +745,6 @@
         let galaxiesGroup, starsObjectsMap, galaxyCentersMap, raycaster, mouse;
 
         function init() {
-            // عدم تفعيل الأدمن تلقائياً إلا بإدخال كلمة المرور حفاظاً على الأمان
             loadLocalData();
 
             const container = document.getElementById('webgl-container');
@@ -989,7 +988,6 @@
             if (isFlightMode && rocketMesh) {
                 let isAccelerating = false;
 
-                // تصحيح اتجاه الدوران (اليمين واليسار)
                 if (keysPressed['a']) { angularVelocity -= 0.003; }
                 if (keysPressed['d']) { angularVelocity += 0.003; }
                 rocketMesh.rotation.y += angularVelocity;
@@ -1136,7 +1134,6 @@
                 document.getElementById('admin-modal').classList.add('active');
             });
 
-            // إصلاح النقر واختيار الـ Avatars (الأيقونات) بشكل مضمون
             document.querySelectorAll('.avatar-option').forEach(opt => {
                 opt.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -1152,7 +1149,7 @@
                 const country = document.getElementById('star-country').value;
                 if (!name || !country) return;
 
-                const newStar = { id: 'star_' + Date.now() + '_' + Math.random().toString(36.substring(2, 5)), name, country, avatar: selectedAvatar, date: new Date().toISOString().split('T')[0] };
+                const newStar = { id: 'star_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5), name, country, avatar: selectedAvatar, date: new Date().toISOString().split('T')[0] };
                 starsData.push(newStar);
                 saveLocalData();
                 renderAllStars();
